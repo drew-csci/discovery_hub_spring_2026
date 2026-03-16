@@ -49,7 +49,8 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 
 ---
 
-### 4) Apply migrations -- THIS HAS BEEN DONE ALREADY 
+### 4) THIS HAS BEEN DONE ALREADY -- Move to step 6 
+#### 4) Apply migrations 
 ```bash
 python manage.py migrate
 ```
@@ -58,16 +59,16 @@ If you’re developing locally and using the remote DB, make sure your network a
 
 ---
 
-### 5) Create users
-
-#### a) Create the admin (superuser) -- THIS HAS BEEN DONE ALREADY
+### 5) THIS HAS BEEN DONE ALREADY -- Move to step 6 
+##### Create users
+##### (THIS HAS BEEN DONE ALREADY, go to Step 6) a) Create the admin (superuser) 
 Run:
 ```bash
 python manage.py createsuperuser --email admin_disco@drew.edu --username admin
 ```
 When prompted, enter the password of your choice, for example: **`Discovery1!`**
 
-#### b) Seed the three role accounts -- THIS HAS BEEN DONE ALREADY
+#####  (THIS HAS BEEN DONE ALREADY, go to Step 6) b) Seed the three role accounts 
 From the Django shell:
 ```bash
 python manage.py shell
