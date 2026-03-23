@@ -9,6 +9,7 @@ class User(AbstractUser):
 
     user_type = models.CharField(max_length=20, choices=UserType.choices, default=UserType.UNIVERSITY)
     email = models.EmailField(unique=True)
+    is_email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']  # keep username for admin compatibility
