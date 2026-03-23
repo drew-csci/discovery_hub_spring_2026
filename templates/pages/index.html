@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Discovery Hub{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <h1>Welcome to Discovery Hub</h1>
+    <p style="font-size: 1.2rem; margin: 1rem 0; color: #666;">
+        Helping biopharma professionals discover licensing and partnering opportunities.
+    </p>
+    
+    <div style="margin: 2rem 0;">
+        <h2>Get Started</h2>
+        <p style="margin-bottom: 1.5rem;">Choose your account type:</p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('accounts.register', type='university') }}" style="padding: 1.5rem 2rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
+                <h3>University / TTO</h3>
+                <p>For research institutions</p>
+            </a>
+            
+            <a href="{{ url_for('accounts.register', type='company') }}" style="padding: 1.5rem 2rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
+                <h3>Company</h3>
+                <p>For biotech companies</p>
+            </a>
+            
+            <a href="{{ url_for('accounts.register', type='investor') }}" style="padding: 1.5rem 2rem; background: #ffc107; color: #333; text-decoration: none; border-radius: 4px; min-width: 200px;">
+                <h3>Investor</h3>
+                <p>For investors</p>
+            </a>
+        </div>
+    </div>
+
+    <p style="margin-top: 2rem; color: #666;">
+        Already registered? <a href="{{ url_for('accounts.login') }}">Login here</a>
+    </p>
+</div>
+{% endblock %}

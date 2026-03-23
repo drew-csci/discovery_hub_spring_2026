@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Discovery Hub{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Dashboard</h2>
+    <p style="color: #666; margin: 1rem 0;">Welcome back, <strong>{{ user.display_name }}</strong></p>
+    
+    <div style="margin: 2rem 0; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+        <h3>Your Profile</h3>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Account Type:</strong> {{ user.user_type.title() }}</p>
+        <p><strong>Active:</strong> {% if user.is_active %}Yes{% else %}No{% endif %}</p>
+    </div>
+
+    {% if user.user_type == 'university' and user.ttoprofile %}
+        <div style="margin: 2rem 0; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3>TTO Profile</h3>
+            <p><strong>Institution:</strong> {{ user.ttoprofile.institution_name or 'Not set' }}</p>
+            <p><strong>Office:</strong> {{ user.ttoprofile.office_name or 'Not set' }}</p>
+            <p><strong>Country:</strong> {{ user.ttoprofile.country or 'Not set' }}</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <h3>What's Next?</h3>
+        <ul style="margin: 1rem 0;">
+            <li>Complete your profile</li>
+            <li>Browse available opportunities</li>
+            <li>Connect with other members</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,26 +1,56 @@
-from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from .models import User
 
-class UserRegistrationForm(UserCreationForm):
-    user_type = forms.ChoiceField(choices=User.UserType.choices, widget=forms.RadioSelect)
 
-    class Meta:
-        model = User
-        fields = ('email', 'password1', 'password2', 'user_type')
+class UserRegistrationForm(FlaskForm):
+    """User registration form"""
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    password_confirm = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
+    user_type = SelectField('Account Type', choices=[
+        ('university', 'University / TTO'),
+        ('company', 'Company'),
+        ('investor', 'Investor')
+    ], validators=[DataRequired()])
+    submit = SubmitField('Register')
+    
+    def validate_email(self, email):
+        """Check if email already exists"""
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email already registered. Please log in or use a different email.')
 
-class EmailAuthenticationForm(AuthenticationForm):
-    # Field is still named "username" internally; label it clearly as Email.
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['username'].label = 'Email'
-        self.fields['username'].widget.attrs.update({'placeholder': 'you@example.com', 'autofocus': True})
-        self.fields['password'].widget.attrs.update({'placeholder': 'password'})
+
+class EmailLoginForm(FlaskForm):
+    """Login form using email"""
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
 
 
-class CustomPasswordResetForm(PasswordResetForm):
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if not User.objects.filter(email__iexact=email, is_active=True).exists():
-            raise forms.ValidationError("This email is not associated with any account.")
-        return email
+class PasswordResetRequestForm(FlaskForm):
+    """Request password reset"""
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+    
+    def validate_email(self, email):
+        """Check if email exists"""
+        user = User.query.filter_by(email=email.data).first()
+        if not user or not user.is_active:
+            raise ValidationError('No account found with that email address.')
+
+
+class ResetPasswordForm(FlaskForm):
+    """Reset password form"""
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=8)])
+    password_confirm = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
+    submit = SubmitField('Reset Password')

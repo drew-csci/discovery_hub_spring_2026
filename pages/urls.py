@@ -1,16 +1,12 @@
-from django.urls import path
-from . import views
+"""
+Pages Blueprint Routes
 
-urlpatterns = [
-    path('', views.welcome, name='welcome'),
-    path('screen1/', views.screen1, name='screen1'),
-    path('screen2/', views.screen2, name='screen2'),
-    path('screen3/', views.screen3, name='screen3'),
-    path('notifications/', views.notifications, name='notifications'), # added for notifications page, 
-    # URL for the Company Home Page (Dashboard)
-    path('company/home/', views.company_home, name='company_home'),
-    path('university/home/', views.university_home, name='university_home'),
-    path('company/profile/', views.company_profile, name='company_profile'),
-    path('investor/profile/', views.investor_profile, name='investor_profile'),
-    path('university/profile/', views.university_profile, name='university_profile'),
-]
+Routes are defined using decorators in views.py:
+- / - Homepage
+- /dashboard - Main user dashboard
+- /company_dashboard - Company-specific dashboard
+- /screen1 - Onboarding screen 1
+
+See pages/views.py for implementation details.
+"""
+
