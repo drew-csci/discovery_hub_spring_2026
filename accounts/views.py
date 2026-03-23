@@ -2,7 +2,11 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.views.generic import FormView
-from .forms import UserRegistrationForm, EmailAuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import UpdateView
+from django.contrib import messages
+from .forms import UserRegistrationForm, EmailAuthenticationForm, ProfileUpdateForm
+from .models import User
 
 class RegisterView(FormView):
     template_name = 'accounts/register.html'
@@ -36,3 +40,16 @@ class CustomLoginView(LoginView):
             self.request.session['selected_user_type'] = user_type
         context['selected_user_type'] = user_type
         return context
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = ProfileUpdateForm
+    template_name = 'accounts/settings.html'
+    success_url = reverse_lazy('account_settings')
+
+    def get_object(self):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Profile updated successfully.')
+        return super().form_valid(form)
