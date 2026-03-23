@@ -7,8 +7,8 @@
       --card: #ffffff;
       --text: #0f172a;
       --muted: #64748b;
-      --primary: #2563eb;
-      --primary-600: #1d4ed8;
+      --primary: #2b3e67;
+      --primary-600: #2b3b67;
       --ring: rgba(37, 99, 235, 0.25);
       --shadow: 0 10px 25px rgba(2, 6, 23, 0.08);
       --radius: 16px;
@@ -147,21 +147,21 @@
 </style>
 {% endblock styles %}
 
-{% block body %}
+{% block content %}
 <main class="card">
-  <a href="{% url 'welcome' %}"><div class="logo">DH</div></a>
+  <a href="{{ url_for('pages.index') }}"><div class="logo">DH</div></a>
   <h1>Log In{% if selected_user_type %} as {{ selected_user_type|title }}{% endif %}</h1>
 
   <form method="post" novalidate>
-    {% csrf_token %}
+    {{ form.hidden_tag() }}
     {% if form.non_field_errors %}
       <div class="error" style="text-align: center; margin-bottom: 1rem;">{{ form.non_field_errors.0 }}</div>
     {% endif %}
 
     <div class="form-group">
-      <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
-      {{ form.username }}
-      {% if form.username.errors %}<div class="error">{{ form.username.errors.0 }}</div>{% endif %}
+      <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+      {{ form.email }}
+      {% if form.email.errors %}<div class="error">{{ form.email.errors.0 }}</div>{% endif %}
     </div>
 
     <div class="form-group">
@@ -175,15 +175,19 @@
       </div>
       {% if form.password.errors %}<div class="error">{{ form.password.errors.0 }}</div>{% endif %}
       <div style="text-align: right; font-size: 0.9rem; margin-top: 0.5rem;">
-        <a href="{% url 'password_reset' %}" class="text-link">Forgot Password?</a>
+        <a href="{{ url_for('accounts.password_reset') }}" class="text-link">Forgot Password?</a>
       </div>
     </div>
 
-    <button class="submit-btn" type="submit">Log In</button>
+    <div class="form-group" style="text-align: left;">
+      {{ form.remember_me }} {{ form.remember_me.label }}
+    </div>
+
+    <button class="submit-btn" type="submit">{{ form.submit.label }}</button>
   </form>
 
   <p class="hint">Don't have an account?
-    <a href="{% url 'register' %}{% if selected_user_type %}?type={{ selected_user_type }}{% endif %}" class="text-link">Create one</a>
+    <a href="{{ url_for('accounts.register') }}{% if selected_user_type %}?type={{ selected_user_type }}{% endif %}" class="text-link">Create one</a>
   </p>
 </main>
 <script>
@@ -204,4 +208,4 @@
     }
   });
 </script>
-{% endblock body %}
+{% endblock content %}
