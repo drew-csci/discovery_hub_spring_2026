@@ -13,7 +13,7 @@ body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial,
 .auth-card, .dash-card { background:#fff; border:1px solid #e5e7eb; border-radius:.8rem; padding:2rem; margin-top:2rem; }
 h1 { margin-top:0; }
 .form-field { margin-bottom:1rem; display:flex; flex-direction:column; }
-.form-field input[type="text"], .form-field input[type="email"], .form-field input[type="password"] { padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:.5rem; }
+.form-field input[type="text"], .form-field input[type="email"], .form-field input[type="password"], .form-field input[type="tel"] { padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:.5rem; }
 fieldset.form-field { border:1px solid #e5e7eb; border-radius:.6rem; padding:.75rem 1rem; }
 .button-row { display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem; }
 .btn { display:inline-block; background:#111827; color:#fff; text-decoration:none; padding:.6rem .9rem; border-radius:.6rem; }
@@ -23,3 +23,17 @@ fieldset.form-field { border:1px solid #e5e7eb; border-radius:.6rem; padding:.75
 .error { color:#b91c1c; font-size:.9rem; margin-top:.25rem; }
 .messages { list-style:none; padding:0; }
 .messages li { background:#ecfeff; border:1px solid #22d3ee; color:#0e7490; padding:.6rem .9rem; border-radius:.5rem; margin:.5rem 0; }
+
+/* Phone input styles */
+.phone-input-container { position: relative; }
+.phone-input-container input { width: 100%; }
+
+/* Birthday dropdowns */
+.birthday-container { display: flex; gap: 0.5rem; align-items: center; }
+.birthday-container select { flex: 1; padding: .6rem .7rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: white; }
+.birth-month { flex: 2; }
+.birth-day { flex: 1; }
+.birth-year { flex: 1; }
+
+/* Country/State/City dropdowns */
+.form-field select { width: 100%; padding: .6rem .7rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: white; }
