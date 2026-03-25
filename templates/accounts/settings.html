@@ -23,7 +23,216 @@
         {{ form.email }}
         {% if form.email.errors %}<div class="error">{{ form.email.errors.0 }}</div>{% endif %}
       </div>
+      <div class="form-field">
+        <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+        <div class="phone-input-container">
+          <input type="tel" id="phone_number" name="phone_number" value="{{ form.phone_number.value|default:'' }}">
+        </div>
+        {% if form.phone_number.errors %}<div class="error">{{ form.phone_number.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label>Birthday</label>
+        <div class="birthday-container">
+          {{ form.birth_month }}
+          {{ form.birth_day }}
+          {{ form.birth_year }}
+        </div>
+        {% if form.birth_month.errors %}<div class="error">{{ form.birth_month.errors.0 }}</div>{% endif %}
+        {% if form.birth_day.errors %}<div class="error">{{ form.birth_day.errors.0 }}</div>{% endif %}
+        {% if form.birth_year.errors %}<div class="error">{{ form.birth_year.errors.0 }}</div>{% endif %}
+        {% if form.non_field_errors %}<div class="error">{{ form.non_field_errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+        <select id="country" name="country">
+          <option value="">Select Country</option>
+        </select>
+        {% if form.country.errors %}<div class="error">{{ form.country.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.state.id_for_label }}">{{ form.state.label }}</label>
+        <select id="state" name="state" disabled>
+          <option value="">Select State/Province</option>
+        </select>
+        {% if form.state.errors %}<div class="error">{{ form.state.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+        <select id="city" name="city" disabled>
+          <option value="">Select City</option>
+        </select>
+        {% if form.city.errors %}<div class="error">{{ form.city.errors.0 }}</div>{% endif %}
+      </div>
       <button class="btn primary" type="submit">Update Profile</button>
     </form>
   </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Country, State, City data
+const countryStateCityData = {
+  "United States": {
+    "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"],
+    "Texas": ["Houston", "Dallas", "Austin", "San Antonio"],
+    "New York": ["New York City", "Buffalo", "Albany", "Syracuse"],
+    "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville"]
+  },
+  "Canada": {
+    "Ontario": ["Toronto", "Ottawa", "Hamilton", "London"],
+    "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby"],
+    "Quebec": ["Montreal", "Quebec City", "Laval", "Gatineau"],
+    "Alberta": ["Calgary", "Edmonton", "Red Deer", "Lethbridge"]
+  },
+  "United Kingdom": {
+    "England": ["London", "Manchester", "Birmingham", "Liverpool"],
+    "Scotland": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee"],
+    "Wales": ["Cardiff", "Swansea", "Newport", "Wrexham"],
+    "Northern Ireland": ["Belfast", "Derry", "Lisburn", "Newry"]
+  }
+};
+
+// Initialize International Telephone Input
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.querySelector("#phone_number");
+    const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "us",
+        separateDialCode: true,
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"
+    });
+
+    // Set initial value if exists
+    const initialPhone = "{{ form.phone_number.value|default:'' }}";
+    if (initialPhone) {
+        iti.setNumber(initialPhone);
+    }
+
+    // Update hidden input with full number on form submit
+    document.querySelector('form').addEventListener('submit', function() {
+        const fullNumber = iti.getNumber();
+        phoneInput.value = fullNumber;
+    });
+});
+
+// Initialize Country/State/City dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('country');
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+
+    // Populate countries
+    Object.keys(countryStateCityData).forEach(country => {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        countrySelect.appendChild(option);
+    });
+
+    // Set initial values
+    const initialCountry = "{{ form.country.value|default:'' }}";
+    const initialState = "{{ form.state.value|default:'' }}";
+    const initialCity = "{{ form.city.value|default:'' }}";
+
+    if (initialCountry) {
+        countrySelect.value = initialCountry;
+        populateStates(initialCountry, initialState);
+    }
+
+    // Country change handler
+    countrySelect.addEventListener('change', function() {
+        const selectedCountry = this.value;
+        populateStates(selectedCountry);
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        citySelect.disabled = true;
+    });
+
+    // State change handler
+    stateSelect.addEventListener('change', function() {
+        const selectedCountry = countrySelect.value;
+        const selectedState = this.value;
+        populateCities(selectedCountry, selectedState);
+    });
+
+    function populateStates(country, selectedState = '') {
+        stateSelect.innerHTML = '<option value="">Select State/Province</option>';
+        if (country && countryStateCityData[country]) {
+            Object.keys(countryStateCityData[country]).forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+            stateSelect.disabled = false;
+            if (selectedState) {
+                stateSelect.value = selectedState;
+                populateCities(country, selectedState, initialCity);
+            }
+        } else {
+            stateSelect.disabled = true;
+        }
+    }
+
+    function populateCities(country, state, selectedCity = '') {
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        if (country && state && countryStateCityData[country] && countryStateCityData[country][state]) {
+            countryStateCityData[country][state].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+            citySelect.disabled = false;
+            if (selectedCity) {
+                citySelect.value = selectedCity;
+            }
+        } else {
+            citySelect.disabled = true;
+        }
+    }
+});
+
+// Birthday day adjustment based on month
+document.addEventListener('DOMContentLoaded', function() {
+    const monthSelect = document.querySelector('.birth-month');
+    const daySelect = document.querySelector('.birth-day');
+    const yearSelect = document.querySelector('.birth-year');
+
+    function adjustDays() {
+        const month = parseInt(monthSelect.value);
+        const year = parseInt(yearSelect.value);
+        let maxDays = 31;
+
+        if (month) {
+            if ([4, 6, 9, 11].includes(month)) {
+                maxDays = 30;
+            } else if (month === 2) {
+                // Check for leap year
+                const isLeapYear = year && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
+                maxDays = isLeapYear ? 29 : 28;
+            }
+        }
+
+        const currentDay = daySelect.value;
+        daySelect.innerHTML = '';
+
+        for (let i = 1; i <= maxDays; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            daySelect.appendChild(option);
+        }
+
+        // Restore selected day if it still exists
+        if (currentDay && parseInt(currentDay) <= maxDays) {
+            daySelect.value = currentDay;
+        }
+    }
+
+    monthSelect.addEventListener('change', adjustDays);
+    yearSelect.addEventListener('change', adjustDays);
+
+    // Initial adjustment
+    adjustDays();
+});
+</script>
 {% endblock %}
