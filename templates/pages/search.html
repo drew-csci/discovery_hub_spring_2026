@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Opportunity Search</h1>
+<form method="get" action="{% url 'opportunity_search' %}">
+  <input type="text" name="q" value="{{ query }}" placeholder="Keyword" />
+  <input type="text" name="type" value="{{ type }}" placeholder="Type" />
+  <input type="text" name="category" value="{{ category }}" placeholder="Category" />
+  <button type="submit">Go</button>
+</form>
+
+{% if opportunities %}
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for opp in opportunities %}
+      <tr>
+        <td>{{ opp.name }}</td>
+        <td>{{ opp.description|truncatechars:80 }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No results found.</p>
+{% endif %}
+
+{% endblock %}

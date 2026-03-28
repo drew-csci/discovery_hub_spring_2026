@@ -1,8 +1,27 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
+from .models import Opportunity
+
 def welcome(request):
     return render(request, 'pages/welcome.html')
+
+
+def opportunity_search(request):
+    q = request.GET.get('q', '').strip()
+
+    opportunities = Opportunity.objects.all()
+
+    if q:
+        opportunities = opportunities.filter(name__icontains=q)
+
+    context = {
+        'query': q,
+        'opportunities': opportunities,
+    }
+
+    return render(request, 'pages/search.html', context)
+
 
 @login_required
 def screen1(request):
