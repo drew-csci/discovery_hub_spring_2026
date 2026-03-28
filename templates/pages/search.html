@@ -8,6 +8,7 @@
   <input type="text" name="category" value="{{ category }}" placeholder="Category" />
   <input type="number" name="per_page" value="{{ opportunities.paginator.per_page|default:10 }}" min="1" style="width: 80px;" />
   <button type="submit">Go</button>
+  <a href="{% url 'opportunity_search' %}" class="button">Clear</a>
 </form>
 
 <p>Found {{ total_matches }} results in {{ load_time }} seconds.</p>
@@ -47,7 +48,7 @@
 </div>
 
 {% else %}
-<p>No results found.</p>
+<p>No results found. Try a different keyword or clear filters.</p>
 {% endif %}
 
 {% endblock %}
