@@ -23,7 +23,135 @@
         {{ form.email }}
         {% if form.email.errors %}<div class="error">{{ form.email.errors.0 }}</div>{% endif %}
       </div>
+      <div class="form-field">
+        <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+        <div class="phone-input-container">
+          <input type="tel" id="phone_number" name="phone_number" value="{{ form.phone_number.value|default:'' }}">
+        </div>
+        {% if form.phone_number.errors %}<div class="error">{{ form.phone_number.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label>Birthday</label>
+        <div class="birthday-container">
+          {{ form.birth_month }}
+          {{ form.birth_day }}
+          {{ form.birth_year }}
+        </div>
+        {% if form.birth_month.errors %}<div class="error">{{ form.birth_month.errors.0 }}</div>{% endif %}
+        {% if form.birth_day.errors %}<div class="error">{{ form.birth_day.errors.0 }}</div>{% endif %}
+        {% if form.birth_year.errors %}<div class="error">{{ form.birth_year.errors.0 }}</div>{% endif %}
+        {% if form.non_field_errors %}<div class="error">{{ form.non_field_errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
+        <select id="country" name="country">
+          <option value="United States" {% if form.country.value == 'United States' or not form.country.value %}selected{% endif %}>United States</option>
+        </select>
+        {% if form.country.errors %}<div class="error">{{ form.country.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.state.id_for_label }}">{{ form.state.label }}</label>
+        {{ form.state }}
+        {% if form.state.errors %}<div class="error">{{ form.state.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+        {{ form.city }}
+        {% if form.city.errors %}<div class="error">{{ form.city.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.zip_code.id_for_label }}">{{ form.zip_code.label }}</label>
+        {{ form.zip_code }}
+        {% if form.zip_code.errors %}<div class="error">{{ form.zip_code.errors.0 }}</div>{% endif %}
+      </div>
       <button class="btn primary" type="submit">Update Profile</button>
     </form>
   </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize International Telephone Input
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.querySelector("#phone_number");
+    const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "us",
+        separateDialCode: true,
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"
+    });
+
+    // Set initial value if exists
+    const initialPhone = "{{ form.phone_number.value|default:'' }}";
+    if (initialPhone) {
+        iti.setNumber(initialPhone);
+    }
+
+    // Update hidden input with full number on form submit
+    document.querySelector('form').addEventListener('submit', function() {
+        const fullNumber = iti.getNumber();
+        phoneInput.value = fullNumber;
+    });
+});
+
+// Initialize Country/State/City dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('country');
+    const stateSelect = document.getElementById('state');
+
+    // Set initial values
+    const initialCountry = "{{ form.country.value|default:'United States' }}";
+    const initialState = "{{ form.state.value|default:'' }}";
+
+    if (initialCountry) {
+        countrySelect.value = initialCountry;
+    }
+    if (initialState) {
+        stateSelect.value = initialState;
+    }
+});
+
+// Birthday day adjustment based on month
+document.addEventListener('DOMContentLoaded', function() {
+    const monthSelect = document.querySelector('.birth-month');
+    const daySelect = document.querySelector('.birth-day');
+    const yearSelect = document.querySelector('.birth-year');
+
+    function adjustDays() {
+        const month = parseInt(monthSelect.value);
+        const year = parseInt(yearSelect.value);
+        let maxDays = 31;
+
+        if (month) {
+            if ([4, 6, 9, 11].includes(month)) {
+                maxDays = 30;
+            } else if (month === 2) {
+                // Check for leap year
+                const isLeapYear = year && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
+                maxDays = isLeapYear ? 29 : 28;
+            }
+        }
+
+        const currentDay = daySelect.value;
+        daySelect.innerHTML = '';
+
+        for (let i = 1; i <= maxDays; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            daySelect.appendChild(option);
+        }
+
+        // Restore selected day if it still exists
+        if (currentDay && parseInt(currentDay) <= maxDays) {
+            daySelect.value = currentDay;
+        }
+    }
+
+    monthSelect.addEventListener('change', adjustDays);
+    yearSelect.addEventListener('change', adjustDays);
+
+    // Initial adjustment
+    adjustDays();
+});
+</script>
 {% endblock %}

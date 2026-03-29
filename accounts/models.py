@@ -9,7 +9,12 @@ class User(AbstractUser):
 
     user_type = models.CharField(max_length=20, choices=UserType.choices, default=UserType.UNIVERSITY)
     email = models.EmailField(unique=True)
-    is_email_verified = models.BooleanField(default=False)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    birthday = models.DateField(blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']  # keep username for admin compatibility
