@@ -3,6 +3,59 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User
 import datetime
 
+US_STATES = [
+    ('Alabama', 'Alabama'),
+    ('Alaska', 'Alaska'),
+    ('Arizona', 'Arizona'),
+    ('Arkansas', 'Arkansas'),
+    ('California', 'California'),
+    ('Colorado', 'Colorado'),
+    ('Connecticut', 'Connecticut'),
+    ('Delaware', 'Delaware'),
+    ('Florida', 'Florida'),
+    ('Georgia', 'Georgia'),
+    ('Hawaii', 'Hawaii'),
+    ('Idaho', 'Idaho'),
+    ('Illinois', 'Illinois'),
+    ('Indiana', 'Indiana'),
+    ('Iowa', 'Iowa'),
+    ('Kansas', 'Kansas'),
+    ('Kentucky', 'Kentucky'),
+    ('Louisiana', 'Louisiana'),
+    ('Maine', 'Maine'),
+    ('Maryland', 'Maryland'),
+    ('Massachusetts', 'Massachusetts'),
+    ('Michigan', 'Michigan'),
+    ('Minnesota', 'Minnesota'),
+    ('Mississippi', 'Mississippi'),
+    ('Missouri', 'Missouri'),
+    ('Montana', 'Montana'),
+    ('Nebraska', 'Nebraska'),
+    ('Nevada', 'Nevada'),
+    ('New Hampshire', 'New Hampshire'),
+    ('New Jersey', 'New Jersey'),
+    ('New Mexico', 'New Mexico'),
+    ('New York', 'New York'),
+    ('North Carolina', 'North Carolina'),
+    ('North Dakota', 'North Dakota'),
+    ('Ohio', 'Ohio'),
+    ('Oklahoma', 'Oklahoma'),
+    ('Oregon', 'Oregon'),
+    ('Pennsylvania', 'Pennsylvania'),
+    ('Rhode Island', 'Rhode Island'),
+    ('South Carolina', 'South Carolina'),
+    ('South Dakota', 'South Dakota'),
+    ('Tennessee', 'Tennessee'),
+    ('Texas', 'Texas'),
+    ('Utah', 'Utah'),
+    ('Vermont', 'Vermont'),
+    ('Virginia', 'Virginia'),
+    ('Washington', 'Washington'),
+    ('West Virginia', 'West Virginia'),
+    ('Wisconsin', 'Wisconsin'),
+    ('Wyoming', 'Wyoming'),
+]
+
 class UserRegistrationForm(UserCreationForm):
     user_type = forms.ChoiceField(choices=User.UserType.choices, widget=forms.RadioSelect)
 
@@ -38,12 +91,26 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'phone_number', 'country', 'state', 'city')
+        fields = ('first_name', 'last_name', 'email', 'phone_number', 'country', 'state', 'city', 'zip_code')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Make email field unique but allow current user's email
         self.fields['email'].required = True
+        
+        # Set country default to United States
+        self.fields['country'].initial = 'United States'
+        
+        # Update state field with US states
+        self.fields['state'].widget = forms.Select(choices=[('', 'Select State')] + US_STATES)
+        self.fields['state'].label = 'State'
+        
+        # Change city to text input
+        self.fields['city'].widget = forms.TextInput(attrs={'placeholder': 'Enter your city'})
+        
+        # Add zip code field with validation
+        self.fields['zip_code'].widget = forms.TextInput(attrs={'placeholder': '12345', 'pattern': '[0-9]{5}', 'maxlength': '5'})
+        self.fields['zip_code'].label = 'ZIP Code'
 
         # Set initial values for birthday fields if birthday exists
         if self.instance and self.instance.birthday:
@@ -70,8 +137,10 @@ class ProfileUpdateForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email and User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError('This email address is already in use.')
-        return email
+    def clean_zip_code(self):
+        zip_code = self.cleaned_data.get('zip_code')
+        if zip_code and not zip_code.isdigit():
+            raise forms.ValidationError('ZIP Code must contain only numbers.')
+        if zip_code and len(zip_code) != 5:
+            raise forms.ValidationError('ZIP Code must be exactly 5 digits.')
+        return zip_code

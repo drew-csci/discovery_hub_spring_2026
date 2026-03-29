@@ -45,23 +45,24 @@
       <div class="form-field">
         <label for="{{ form.country.id_for_label }}">{{ form.country.label }}</label>
         <select id="country" name="country">
-          <option value="">Select Country</option>
+          <option value="United States" {% if form.country.value == 'United States' or not form.country.value %}selected{% endif %}>United States</option>
         </select>
         {% if form.country.errors %}<div class="error">{{ form.country.errors.0 }}</div>{% endif %}
       </div>
       <div class="form-field">
         <label for="{{ form.state.id_for_label }}">{{ form.state.label }}</label>
-        <select id="state" name="state" disabled>
-          <option value="">Select State/Province</option>
-        </select>
+        {{ form.state }}
         {% if form.state.errors %}<div class="error">{{ form.state.errors.0 }}</div>{% endif %}
       </div>
       <div class="form-field">
         <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
-        <select id="city" name="city" disabled>
-          <option value="">Select City</option>
-        </select>
+        {{ form.city }}
         {% if form.city.errors %}<div class="error">{{ form.city.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.zip_code.id_for_label }}">{{ form.zip_code.label }}</label>
+        {{ form.zip_code }}
+        {% if form.zip_code.errors %}<div class="error">{{ form.zip_code.errors.0 }}</div>{% endif %}
       </div>
       <button class="btn primary" type="submit">Update Profile</button>
     </form>
@@ -70,28 +71,6 @@
 
 {% block extra_js %}
 <script>
-// Country, State, City data
-const countryStateCityData = {
-  "United States": {
-    "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"],
-    "Texas": ["Houston", "Dallas", "Austin", "San Antonio"],
-    "New York": ["New York City", "Buffalo", "Albany", "Syracuse"],
-    "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville"]
-  },
-  "Canada": {
-    "Ontario": ["Toronto", "Ottawa", "Hamilton", "London"],
-    "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby"],
-    "Quebec": ["Montreal", "Quebec City", "Laval", "Gatineau"],
-    "Alberta": ["Calgary", "Edmonton", "Red Deer", "Lethbridge"]
-  },
-  "United Kingdom": {
-    "England": ["London", "Manchester", "Birmingham", "Liverpool"],
-    "Scotland": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee"],
-    "Wales": ["Cardiff", "Swansea", "Newport", "Wrexham"],
-    "Northern Ireland": ["Belfast", "Derry", "Lisburn", "Newry"]
-  }
-};
-
 // Initialize International Telephone Input
 document.addEventListener('DOMContentLoaded', function() {
     const phoneInput = document.querySelector("#phone_number");
@@ -118,76 +97,16 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const countrySelect = document.getElementById('country');
     const stateSelect = document.getElementById('state');
-    const citySelect = document.getElementById('city');
-
-    // Populate countries
-    Object.keys(countryStateCityData).forEach(country => {
-        const option = document.createElement('option');
-        option.value = country;
-        option.textContent = country;
-        countrySelect.appendChild(option);
-    });
 
     // Set initial values
-    const initialCountry = "{{ form.country.value|default:'' }}";
+    const initialCountry = "{{ form.country.value|default:'United States' }}";
     const initialState = "{{ form.state.value|default:'' }}";
-    const initialCity = "{{ form.city.value|default:'' }}";
 
     if (initialCountry) {
         countrySelect.value = initialCountry;
-        populateStates(initialCountry, initialState);
     }
-
-    // Country change handler
-    countrySelect.addEventListener('change', function() {
-        const selectedCountry = this.value;
-        populateStates(selectedCountry);
-        citySelect.innerHTML = '<option value="">Select City</option>';
-        citySelect.disabled = true;
-    });
-
-    // State change handler
-    stateSelect.addEventListener('change', function() {
-        const selectedCountry = countrySelect.value;
-        const selectedState = this.value;
-        populateCities(selectedCountry, selectedState);
-    });
-
-    function populateStates(country, selectedState = '') {
-        stateSelect.innerHTML = '<option value="">Select State/Province</option>';
-        if (country && countryStateCityData[country]) {
-            Object.keys(countryStateCityData[country]).forEach(state => {
-                const option = document.createElement('option');
-                option.value = state;
-                option.textContent = state;
-                stateSelect.appendChild(option);
-            });
-            stateSelect.disabled = false;
-            if (selectedState) {
-                stateSelect.value = selectedState;
-                populateCities(country, selectedState, initialCity);
-            }
-        } else {
-            stateSelect.disabled = true;
-        }
-    }
-
-    function populateCities(country, state, selectedCity = '') {
-        citySelect.innerHTML = '<option value="">Select City</option>';
-        if (country && state && countryStateCityData[country] && countryStateCityData[country][state]) {
-            countryStateCityData[country][state].forEach(city => {
-                const option = document.createElement('option');
-                option.value = city;
-                option.textContent = city;
-                citySelect.appendChild(option);
-            });
-            citySelect.disabled = false;
-            if (selectedCity) {
-                citySelect.value = selectedCity;
-            }
-        } else {
-            citySelect.disabled = true;
-        }
+    if (initialState) {
+        stateSelect.value = initialState;
     }
 });
 
