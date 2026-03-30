@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="dash-card disclosure-card">
+    <div class="disclosure-header">
+      <div>
+        <p class="eyebrow">Research Intake</p>
+        <h1>Submit Invention Disclosure</h1>
+        <p class="muted">Share the core technical, inventor, and funding details so the TTO can open review immediately.</p>
+      </div>
+      <a class="btn secondary" href="{% url 'screen1' %}">Cancel</a>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert error-banner" role="alert">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate class="disclosure-form">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+          <div class="form-field {% if field.errors %}has-error{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }} <span class="required">*</span></label>
+            {{ field }}
+            {% if field.help_text %}
+              <p class="help-text">{{ field.help_text }}</p>
+            {% endif %}
+            {% for error in field.errors %}
+              <p class="error" role="alert">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="feedback-panel">
+        <p class="feedback-title">What happens next</p>
+        <p class="muted">Your disclosure is recorded, a pipeline card is created for TTO triage, and a confirmation email is sent to your account.</p>
+      </div>
+
+      <div class="button-row">
+        <button class="btn primary" type="submit">Submit Disclosure</button>
+        <a class="btn secondary" href="{% url 'screen1' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,1 @@
+Discovery Hub disclosure received: {{ disclosure.reference_code }}
