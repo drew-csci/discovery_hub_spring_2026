@@ -14,17 +14,17 @@
         <p style="margin-bottom: 1.5rem;">Choose your account type:</p>
         
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{{ url_for('accounts.register', type='university') }}" style="padding: 1.5rem 2rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
+            <a href="{% url 'accounts:register' %}?type=university" style="padding: 1.5rem 2rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
                 <h3>University / TTO</h3>
                 <p>For research institutions</p>
             </a>
             
-            <a href="{{ url_for('accounts.register', type='company') }}" style="padding: 1.5rem 2rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
+            <a href="{% url 'accounts:register' %}?type=company" style="padding: 1.5rem 2rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; min-width: 200px;">
                 <h3>Company</h3>
                 <p>For biotech companies</p>
             </a>
             
-            <a href="{{ url_for('accounts.register', type='investor') }}" style="padding: 1.5rem 2rem; background: #ffc107; color: #333; text-decoration: none; border-radius: 4px; min-width: 200px;">
+            <a href="{% url 'accounts:register' %}?type=investor" style="padding: 1.5rem 2rem; background: #ffc107; color: #333; text-decoration: none; border-radius: 4px; min-width: 200px;">
                 <h3>Investor</h3>
                 <p>For investors</p>
             </a>
@@ -32,7 +32,7 @@
     </div>
 
     <p style="margin-top: 2rem; color: #666;">
-        Already registered? <a href="{{ url_for('accounts.login') }}">Login here</a>
+        Already registered? <a href="{% url 'accounts:login' %}">Login here</a>
     </p>
 </div>
 {% endblock %}

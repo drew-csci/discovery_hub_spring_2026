@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: ##f5f7fb;
+      --muted: #64748b;
+      --primary: #293c64;
+      --primary-600: #293c64;
+      --ring: rgba(37, 99, 235, 0.25);
+      --shadow: 0 10px 25px rgba(2, 6, 23, 0.08);
+      --radius: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #fefefe;
+        --card: #ffffff;
+        --text: #e5e7eb;
+        --muted: #314d75; 
+        --primary: #314e7c;
+        --primary-600: #394d78;
+        --ring: rgba(59, 130, 246, 0.35);
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background: radial-gradient(1000px 600px at 50% -150px, rgba(37,99,235,.15), transparent 60%), var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(90vw, 460px);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px;
+      border: 1px solid rgba(100,116,139,0.15);
+      text-align: center;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0b1f3a, #050d1a);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .5px;
+      box-shadow: 0 6px 20px var(--ring);
+      user-select: none;
+      font-size: 1.4rem;
+      margin: 0 auto 16px;
+    }
+
+    h1 { font-size: 1.6rem; margin: 12px 0 24px; }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .form-group label, .form-group legend {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .form-group input[type="email"], .form-group input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(100,116,139,0.3);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+    
+    .user-type-group {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .user-type-group legend {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .user-type-group ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .user-type-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+    .user-type-group input[type="radio"] {
+        accent-color: var(--primary);
+    }
+
+    .submit-btn {
+      width: 100%;
+      text-decoration: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      padding: 12px 16px;
+      transition: filter .2s, transform .05s;
+      box-shadow: 0 8px 20px var(--ring);
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+    .submit-btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+    .error {
+      color: #b91c1c;
+      font-size: .9rem;
+      margin-top: .25rem;
+      text-align: left;
+    }
+
+    .hint { color: var(--muted); font-size: .9rem; margin-top: 24px; }
+    a.text-link {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    a.text-link:hover {
+      text-decoration: underline;
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<main class="card">
+  <a href="{% url 'pages:index' %}"><div class="logo">DH</div></a>
+  <h1>Create Account</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="error" style="text-align: center; margin-bottom: 1rem;">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    <div class="form-group">
+      <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+      {{ form.email }}
+      {% if form.email.errors %}<div class="error">{{ form.email.errors.0 }}</div>{% endif %}
+    </div>
+    
+    <div class="user-type-group">
+      <legend>User type</legend>
+      {{ form.user_type }}
+      {% if form.user_type.errors %}<div class="error">{{ form.user_type.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+      {{ form.password }}
+      {% if form.password.errors %}<div class="error">{{ form.password.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.password_confirm.id_for_label }}">{{ form.password_confirm.label }}</label>
+      {{ form.password_confirm }}
+      {% if form.password_confirm.errors %}<div class="error">{{ form.password_confirm.errors.0 }}</div>{% endif %}
+    </div>
+
+    <button class="submit-btn" type="submit">Create Account</button>
+  </form>
+
+  <p class="hint">Already have an account?
+    <a href="{% url 'accounts:login' %}" class="text-link">Sign In</a>
+  </p>
+</main>
+{% endblock content %}

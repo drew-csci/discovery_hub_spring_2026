@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Company Discovery{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Discover Companies Seeking Funding</h2>
+    <p>Browse companies that are actively seeking investment. Filter by industry, stage, or patent count.</p>
+</div>
+
+<div class="card">
+    <h3>Apply Filters</h3>
+    <form method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+            <label for="industry">Industry:</label>
+            <select name="industry" id="industry">
+                <option value="">All Industries</option>
+                {% for ind in industries %}
+                    <option value="{{ ind }}" {% if ind == selected_industry %}selected{% endif %}>{{ ind }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="stage">Company Stage:</label>
+            <select name="stage" id="stage">
+                <option value="">All Stages</option>
+                <option value="new" {% if selected_stage == 'new' %}selected{% endif %}>New</option>
+                <option value="experienced" {% if selected_stage == 'experienced' %}selected{% endif %}>Experienced</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="min_patents">Minimum Patents:</label>
+            <input type="number" name="min_patents" id="min_patents" value="{{ selected_min_patents }}" min="0" placeholder="0">
+        </div>
+        
+        <div class="form-group" style="align-self: flex-end;">
+            <button type="submit">Apply Filters</button>
+            <a href="{% url 'pages:discovery_list' %}" style="margin-left: 0.5rem; display: inline-block; padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div style="margin-top: 2rem;">
+    {% if companies %}
+        <h3>{{ companies.count }} Company{{ companies.count|pluralize }} Found</h3>
+        <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+            {% for company in companies %}
+                <div class="card" style="border-left: 4px solid #007bff; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4>{{ company.company_name }}</h4>
+                        <p style="color: #666; margin: 0.5rem 0;">
+                            <strong>Industry:</strong> {{ company.industry }}<br>
+                            <strong>Stage:</strong> {{ company.get_stage_display }}<br>
+                            <strong>Patents:</strong> {{ company.patent_count }}
+                        </p>
+                        <p style="margin-top: 0.5rem; color: #555;">{{ company.description|truncatewords:20 }}</p>
+                    </div>
+                    <div style="text-align: right; margin-left: 2rem;">
+                        <a href="{% url 'pages:company_detail' company.id %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-bottom: 0.5rem;">View Profile</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-error">
+            No companies found matching your filters. Try adjusting your search criteria.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

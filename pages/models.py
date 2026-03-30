@@ -1,21 +1,18 @@
-from extensions import db
-from datetime import datetime
+from django.db import models
 
 
-class Page(db.Model):
+class Page(models.Model):
     """Page model for managing page content"""
-    __tablename__ = 'pages'
     
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    slug = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    content = db.Column(db.Text, default='')
-    is_published = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, db_index=True)
+    content = models.TextField(blank=True, default='')
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-    def __repr__(self):
-        return f'<Page {self.title}>'
+    class Meta:
+        db_table = 'pages'
     
     def __str__(self):
         return self.title

@@ -1,7 +1,16 @@
-"""WSGI entry point for production deployment"""
-from app import create_app
+"""
+WSGI config for Discovery Hub project.
 
-app = create_app()
+It exposes the WSGI callable as a module-level variable named ``application``.
 
-if __name__ == '__main__':
-    app.run()
+For more information on this file, see
+https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+
+application = get_wsgi_application()

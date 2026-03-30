@@ -28,25 +28,23 @@
     <nav>
         <h1><a href="/">Discovery Hub</a></h1>
         <div>
-            {% if current_user.is_authenticated %}
-                <span>Welcome, {{ current_user.display_name }}</span>
-                <a href="{{ url_for('pages.dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('accounts.logout') }}">Logout</a>
+            {% if user.is_authenticated %}
+                <span>Welcome, {{ user.display_name }}</span>
+                <a href="{% url 'pages:dashboard' %}">Dashboard</a>
+                <a href="{% url 'accounts:logout' %}">Logout</a>
             {% else %}
-                <a href="{{ url_for('accounts.register') }}">Register</a>
-                <a href="{{ url_for('accounts.login') }}">Login</a>
+                <a href="{% url 'accounts:register' %}">Register</a>
+                <a href="{% url 'accounts:login' %}">Login</a>
             {% endif %}
         </div>
     </nav>
 
     <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
         {% block content %}{% endblock %}
     </div>

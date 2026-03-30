@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Risk Assessment - {{ company.company_name }}{% endblock %}
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <a href="{% url 'pages:company_detail' company.id %}" style="color: #007bff; text-decoration: none;">&larr; Back to Company Profile</a>
+</div>
+
+<div class="card">
+    <h2>Risk Assessment for {{ company.company_name }}</h2>
+</div>
+
+<div class="card" style="text-align: center; padding: 3rem;">
+    <h3 style="margin-bottom: 1rem;">Investment Risk Level</h3>
+    
+    {% if risk_level == 'Low' %}
+        <div style="font-size: 3rem; color: #28a745; margin: 1rem 0;">
+            🟢
+        </div>
+        <h1 style="color: #28a745; font-size: 2.5rem; margin: 1rem 0;">{{ risk_level }}</h1>
+        <p style="font-size: 1.1rem; color: #155724; background: #d4edda; padding: 1rem; border-radius: 4px; border-left: 4px solid #28a745;">
+            This company shows positive indicators for investment. Strong fundamentals and lower risk profile.
+        </p>
+    {% elif risk_level == 'Medium' %}
+        <div style="font-size: 3rem; color: #ffc107; margin: 1rem 0;">
+            🟡
+        </div>
+        <h1 style="color: #ffc107; font-size: 2.5rem; margin: 1rem 0;">{{ risk_level }}</h1>
+        <p style="font-size: 1.1rem; color: #856404; background: #fff3cd; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
+            This company shows mixed indicators. Review details carefully before investing.
+        </p>
+    {% elif risk_level == 'High' %}
+        <div style="font-size: 3rem; color: #dc3545; margin: 1rem 0;">
+            🔴
+        </div>
+        <h1 style="color: #dc3545; font-size: 2.5rem; margin: 1rem 0;">{{ risk_level }}</h1>
+        <p style="font-size: 1.1rem; color: #721c24; background: #f8d7da; padding: 1rem; border-radius: 4px; border-left: 4px solid #dc3545;">
+            This company shows higher risk indicators. Proceed with caution and conduct additional due diligence.
+        </p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Assessment Factors</h3>
+    <ul style="list-style: none; padding: 0;">
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+            <strong>Patent Count:</strong> {{ company.patent_count }} patents
+            {% if company.patent_count >= 10 %}
+                <span style="color: #28a745;"> ✓ Strong</span>
+            {% elif company.patent_count >= 5 %}
+                <span style="color: #ffc107;"> ~ Moderate</span>
+            {% else %}
+                <span style="color: #dc3545;"> ✗ Limited</span>
+            {% endif %}
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+            <strong>Company Stage:</strong> {{ company.get_stage_display }}
+            {% if company.stage == 'experienced' %}
+                <span style="color: #28a745;"> ✓ Established</span>
+            {% else %}
+                <span style="color: #ffc107;"> ~ Early Stage</span>
+            {% endif %}
+        </li>
+        <li style="padding: 0.5rem 0;">
+            <strong>Profile Information:</strong> 
+            {% if company.description|length > 100 %}
+                <span style="color: #28a745;"> ✓ Comprehensive</span>
+            {% else %}
+                <span style="color: #dc3545;"> ✗ Limited</span>
+            {% endif %}
+        </li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{% url 'pages:discovery_list' %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-right: 0.5rem;">Continue Exploring</a>
+    <a href="{% url 'pages:company_detail' company.id %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">Back to Profile</a>
+</div>
+{% endblock %}

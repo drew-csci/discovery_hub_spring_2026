@@ -10,7 +10,7 @@
     <div style="margin: 2rem 0; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
         <h3>Your Profile</h3>
         <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Account Type:</strong> {{ user.user_type.title() }}</p>
+        <p><strong>Account Type:</strong> {{ user.user_type|title }}</p>
         <p><strong>Active:</strong> {% if user.is_active %}Yes{% else %}No{% endif %}</p>
     </div>
 

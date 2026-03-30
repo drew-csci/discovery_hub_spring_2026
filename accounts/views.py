@@ -1,121 +1,140 @@
-from flask import render_template, redirect, url_for, request, session, flash
-from flask_login import login_user, logout_user, login_required, current_user
-from . import accounts_bp
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
 from .models import User
-from .forms import UserRegistrationForm, EmailLoginForm, PasswordResetRequestForm, ResetPasswordForm
-from extensions import db
+from .forms import (
+    UserRegistrationForm,
+    EmailLoginForm,
+    PasswordResetRequestForm,
+    ResetPasswordForm
+)
 
 
-@accounts_bp.route('/register', methods=['GET', 'POST'])
-def register():
+@require_http_methods(["GET", "POST"])
+def register(request):
     """Handle user registration"""
-    if current_user.is_authenticated:
-        return redirect(url_for('pages.dashboard'))
+    if request.user.is_authenticated:
+        return redirect('pages:dashboard')
     
-    form = UserRegistrationForm()
+    # Get user type from query parameter
+    user_type = request.GET.get('type', '')
     
-    # Pre-select user type from query parameter or session
-    user_type = request.args.get('type') or session.get('selected_user_type')
-    if user_type:
-        form.user_type.data = user_type
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Registration successful! Welcome to Discovery Hub.')
+            
+            # Redirect based on user type
+            if user.user_type == 'company':
+                return redirect('pages:company_dashboard')
+            return redirect('pages:screen1')
+    else:
+        form = UserRegistrationForm()
+        # Pre-select user type if provided
+        if user_type in dict(form.fields['user_type'].choices):
+            form.fields['user_type'].initial = user_type
     
-    if form.validate_on_submit():
-        user = User(
-            email=form.email.data,
-            username=form.email.data,
-            user_type=form.user_type.data
-        )
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        
-        login_user(user)
-        flash('Registration successful! Welcome to Discovery Hub.', 'success')
-        
-        # Redirect based on user type
-        if user.user_type == 'company':
-            return redirect(url_for('pages.company_dashboard'))
-        return redirect(url_for('pages.screen1'))
-    
-    return render_template('accounts/register.html', form=form)
+    context = {
+        'form': form,
+        'user_type': user_type
+    }
+    return render(request, 'accounts/register.html', context)
 
 
-@accounts_bp.route('/login', methods=['GET', 'POST'])
-def login():
+@require_http_methods(["GET", "POST"])
+def login_view(request):
     """Handle user login"""
-    if current_user.is_authenticated:
-        return redirect(url_for('pages.dashboard'))
+    if request.user.is_authenticated:
+        return redirect('pages:dashboard')
     
-    form = EmailLoginForm()
+    if request.method == 'POST':
+        form = EmailLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            
+            try:
+                user = User.objects.get(email=email)
+                user = authenticate(request, username=user.username, password=password)
+                
+                if user is not None:
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.display_name}!')
+                    
+                    # Redirect based on user type
+                    if user.user_type == 'company':
+                        return redirect('pages:company_dashboard')
+                    return redirect('pages:screen1')
+                else:
+                    messages.error(request, 'Invalid email or password')
+            except User.DoesNotExist:
+                messages.error(request, 'Invalid email or password')
+    else:
+        form = EmailLoginForm()
     
-    # Store user type selection in session
-    user_type = request.args.get('type')
-    if user_type:
-        session['selected_user_type'] = user_type
-    
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid email or password', 'error')
-            return redirect(url_for('accounts.login'))
-        
-        login_user(user, remember=form.remember_me.data)
-        flash(f'Welcome back, {user.display_name}!', 'success')
-        
-        # Redirect based on user type
-        if user.user_type == 'company':
-            return redirect(url_for('pages.company_dashboard'))
-        return redirect(url_for('pages.screen1'))
-    
-    return render_template('accounts/login.html', form=form, 
-                         selected_user_type=session.get('selected_user_type'))
+    user_type = request.GET.get('type')
+    context = {'form': form, 'selected_user_type': user_type}
+    return render(request, 'accounts/login.html', context)
 
 
-@accounts_bp.route('/logout')
-@login_required
-def logout():
+@login_required(login_url='accounts:login')
+@require_http_methods(["POST"])
+def logout_view(request):
     """Handle user logout"""
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('pages.index'))
+    logout(request)
+    messages.info(request, 'You have been logged out.')
+    return redirect('pages:index')
 
 
-@accounts_bp.route('/password_reset', methods=['GET', 'POST'])
-def password_reset_request():
+@require_http_methods(["GET", "POST"])
+def password_reset_request(request):
     """Request password reset"""
-    if current_user.is_authenticated:
-        return redirect(url_for('pages.dashboard'))
+    if request.user.is_authenticated:
+        return redirect('pages:dashboard')
     
-    form = PasswordResetRequestForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user:
-            # TODO: Implement email sending with token
-            flash('Check your email for password reset instructions.', 'info')
-        return redirect(url_for('accounts.login'))
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=email)
+                # TODO: Implement email sending with token
+                messages.info(request, 'Check your email for password reset instructions.')
+            except User.DoesNotExist:
+                # Don't reveal if email exists
+                messages.info(request, 'Check your email for password reset instructions.')
+            return redirect('accounts:login')
+    else:
+        form = PasswordResetRequestForm()
     
-    return render_template('accounts/password_reset_form.html', form=form)
+    return render(request, 'accounts/password_reset_form.html', {'form': form})
 
 
-@accounts_bp.route('/reset/<token>', methods=['GET', 'POST'])
-def password_reset(token):
+@require_http_methods(["GET", "POST"])
+def password_reset(request, token=None):
     """Reset password with token"""
-    if current_user.is_authenticated:
-        return redirect(url_for('pages.dashboard'))
+    if request.user.is_authenticated:
+        return redirect('pages:dashboard')
     
     # TODO: Implement token verification
-    user = None  # Verify token and get user
+    user = None
     
     if not user:
-        flash('Invalid or expired reset link.', 'error')
-        return redirect(url_for('accounts.login'))
+        messages.error(request, 'Invalid or expired reset link.')
+        return redirect('accounts:login')
     
-    form = ResetPasswordForm()
-    if form.validate_on_submit():
-        user.set_password(form.password.data)
-        db.session.commit()
-        flash('Your password has been reset. You can now log in.', 'success')
-        return redirect(url_for('accounts.login'))
+    if request.method == 'POST':
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            messages.success(request, 'Your password has been reset. You can now log in.')
+            return redirect('accounts:login')
+    else:
+        form = ResetPasswordForm()
     
-    return render_template('accounts/password_reset_confirm.html', form=form)
+    return render(request, 'accounts/password_reset_confirm.html', {'form': form})

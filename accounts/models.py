@@ -1,44 +1,36 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
-from extensions import db
-from datetime import datetime
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 
-class User(UserMixin, db.Model):
-    """User model for authentication"""
-    __tablename__ = 'users'
+class User(AbstractUser):
+    """Custom user model for authentication"""
     
-    # User types
     USER_TYPES = ['university', 'company', 'investor']
+    USER_TYPE_CHOICES = [
+        ('university', 'University'),
+        ('company', 'Company'),
+        ('investor', 'Investor'),
+    ]
     
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    username = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    first_name = db.Column(db.String(255), default='')
-    last_name = db.Column(db.String(255), default='')
-    user_type = db.Column(db.String(20), nullable=False, default='university')
-    is_active = db.Column(db.Boolean, default=True)
-    is_admin = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    email = models.EmailField(unique=True, max_length=255, db_index=True)
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default='university'
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     
-    # Relationships
-    ttoprofile = db.relationship('TTOProfile', backref='user', uselist=False, cascade='all, delete-orphan')
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
     
-    def __repr__(self):
-        return f'<User {self.email}>'
+    class Meta:
+        db_table = 'accounts_user'
     
     def __str__(self):
         return self.email
-    
-    def set_password(self, password):
-        """Hash and set password"""
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        """Verify password against hash"""
-        return check_password_hash(self.password_hash, password)
     
     @property
     def display_name(self):
@@ -59,23 +51,47 @@ class User(UserMixin, db.Model):
         return self.user_type == 'investor'
 
 
-class TTOProfile(db.Model):
+class TTOProfile(models.Model):
     """Technology Transfer Office profile for university users"""
-    __tablename__ = 'tto_profiles'
     
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
-    institution_name = db.Column(db.String(255), default='')
-    office_name = db.Column(db.String(255), default='')
-    country = db.Column(db.String(100), default='')
-    therapeutic_focus_tags = db.Column(db.JSON, default=list)  # Stored as JSON array
-    trl_range_interest_min = db.Column(db.Integer, nullable=True)
-    trl_range_interest_max = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ttoprofile')
+    institution_name = models.CharField(max_length=255, blank=True, default='')
+    office_name = models.CharField(max_length=255, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    therapeutic_focus_tags = models.JSONField(default=list, blank=True)
+    trl_range_interest_min = models.IntegerField(null=True, blank=True)
+    trl_range_interest_max = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-    def __repr__(self):
-        return f'<TTOProfile {self.user.email}>'
+    class Meta:
+        db_table = 'tto_profiles'
     
     def __str__(self):
         return f"TTO Profile for {self.user.display_name}"
+
+
+class CompanyProfile(models.Model):
+    """Company profile for companies seeking funding"""
+    
+    STAGE_CHOICES = [
+        ('new', 'New'),
+        ('experienced', 'Experienced'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company_profile')
+    company_name = models.CharField(max_length=255)
+    industry = models.CharField(max_length=255, blank=True, default='')
+    patent_count = models.IntegerField(default=0)
+    stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='new')
+    seeking_funding = models.BooleanField(default=True)
+    description = models.TextField(blank=True, default='')
+    funding_details = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'company_profiles'
+    
+    def __str__(self):
+        return self.company_name
