@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="dash-card">
+    <h1>Innovation Feed</h1>
+    <p class="muted">Browse latest patented idea showcases from companies and universities.</p>
+
+    {% if user.is_authenticated %}
+      {% if user.user_type == 'company' or user.user_type == 'university' %}
+        <a class="btn" href="{% url 'create_post' %}">Create Post</a>
+      {% endif %}
+    {% endif %}
+
+    {% if posts %}
+      <div class="feed-grid">
+      {% for post in posts %}
+        <article class="post-card">
+          <h2>{{ post.title }}</h2>
+          <p>{{ post.description|linebreaksbr }}</p>
+
+          {% if post.media %}
+            {% if post.media_type == 'image' %}
+              <img src="{{ post.media.url }}" alt="{{ post.title }}" style="max-width:100%;height:auto;" />
+            {% elif post.media_type == 'video' %}
+              <video controls style="max-width:100%;height:auto;">
+                <source src="{{ post.media.url }}" type="video/mp4">
+                Your browser does not support HTML5 video.
+              </video>
+            {% endif %}
+          {% endif %}
+
+          <div class="post-meta">
+            <span>Posted by <strong>{{ post.organization_name }}</strong> ({{ post.organization_type|title }})</span>
+            <span>on {{ post.created_at|date:'M d, Y H:i' }}</span>
+          </div>
+        </article>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p>No posts yet. Be the first to create one!</p>
+    {% endif %}
+  </section>
+{% endblock %}
