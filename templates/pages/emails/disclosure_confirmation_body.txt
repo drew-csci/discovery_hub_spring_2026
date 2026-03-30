@@ -1,0 +1,15 @@
+Hello {{ researcher.display_name }},
+
+Your invention disclosure has been submitted successfully.
+
+Reference: {{ disclosure.reference_code }}
+Title: {{ disclosure.title }}
+Submitted: {{ submitted_at|date:"F j, Y g:i A" }}
+
+Next steps:
+- The TTO intake team will review your submission.
+- A pipeline card has been created in the "New Disclosure" stage.
+- You may be contacted for additional materials or prior art context.
+
+Thank you,
+Discovery Hub

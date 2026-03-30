@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,17 +42,25 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = 'discovery_hub.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME','discovery_db'),
-        'USER': os.getenv('DB_USER','disco_app'),
-        'PASSWORD': os.getenv('DB_PASSWORD','CSCI340Fall2025Disco'),
-        'HOST': os.getenv('DB_HOST','34.16.174.60'),
-        'PORT': int(os.getenv('DB_PORT','5432')),
-        'CONN_MAX_AGE': 60,
+if "test" in sys.argv and os.getenv("USE_POSTGRES_FOR_TESTS", "").lower() != "true":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "test_db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME','discovery_db'),
+            'USER': os.getenv('DB_USER','disco_app'),
+            'PASSWORD': os.getenv('DB_PASSWORD','CSCI340Fall2025Disco'),
+            'HOST': os.getenv('DB_HOST','34.16.174.60'),
+            'PORT': int(os.getenv('DB_PORT','5432')),
+            'CONN_MAX_AGE': 60,
+        }
+    }
 
 AUTH_USER_MODEL = 'accounts.User'
 

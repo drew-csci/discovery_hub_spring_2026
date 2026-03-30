@@ -15,6 +15,9 @@
     {% endif %}
 
     <div class="button-row" style="margin-top:1rem;">
+      {% if request.user.user_type == 'university' %}
+        <a class="btn primary" href="{% url 'disclosure_submit' %}">Submit Disclosure</a>
+      {% endif %}
       <a class="btn" href="{% url 'screen2' %}">Go to Screen 2</a>
       <a class="btn" href="{% url 'screen3' %}">Go to Screen 3</a>
     </div>

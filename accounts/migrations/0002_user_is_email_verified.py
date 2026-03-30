@@ -3,6 +3,35 @@
 from django.db import migrations, models
 
 
+def add_is_email_verified(apps, schema_editor):
+    User = apps.get_model("accounts", "User")
+    table_name = User._meta.db_table
+    existing_columns = {
+        column.name for column in schema_editor.connection.introspection.get_table_description(
+            schema_editor.connection.cursor(),
+            table_name,
+        )
+    }
+    if "is_email_verified" not in existing_columns:
+        field = models.BooleanField(default=False)
+        field.set_attributes_from_name("is_email_verified")
+        schema_editor.add_field(User, field)
+
+
+def remove_is_email_verified(apps, schema_editor):
+    User = apps.get_model("accounts", "User")
+    table_name = User._meta.db_table
+    existing_columns = {
+        column.name for column in schema_editor.connection.introspection.get_table_description(
+            schema_editor.connection.cursor(),
+            table_name,
+        )
+    }
+    if "is_email_verified" in existing_columns:
+        field = User._meta.get_field("is_email_verified")
+        schema_editor.remove_field(User, field)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,14 +39,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="""
-                ALTER TABLE accounts_user
-                ADD COLUMN IF NOT EXISTS is_email_verified boolean NOT NULL DEFAULT FALSE;
-            """,
-            reverse_sql="""
-                ALTER TABLE accounts_user
-                DROP COLUMN IF EXISTS is_email_verified;
-            """,
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(add_is_email_verified, remove_is_email_verified),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="user",
+                    name="is_email_verified",
+                    field=models.BooleanField(default=False),
+                ),
+            ],
         ),
     ]
