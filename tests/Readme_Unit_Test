@@ -1,0 +1,63 @@
+# Unit Test Suite Documentation
+
+## Overview
+
+The unit tests verify the functionality of individual components and features in isolation. These tests focus on testing specific business logic, models, and utility functions without requiring the full application context.
+
+## What Are Unit Tests?
+
+Unit tests:
+- Test individual functions, methods, and classes in isolation
+- Verify business logic correctness
+- Check model creation and operations
+- Test form validation and data handling
+- Ensure component-level functionality works as expected
+- Run quickly and with minimal dependencies
+
+## Test File Location
+
+```
+/Users/tylerwerr/f25_Discovery/tests/unit_test.py
+```
+
+## Running the Tests
+
+### Run all unit tests:
+```bash
+cd /Users/tylerwerr/f25_Discovery
+python manage.py test tests.unit_test
+```
+
+### Run a specific test class:
+```bash
+python manage.py test tests.unit_test.DiscoveryWorkflowTest
+```
+
+### Run a specific test method:
+```bash
+python manage.py test tests.unit_test.DiscoveryWorkflowTest.test_complete_discovery_workflow
+```
+
+### Run with verbose output:
+```bash
+python manage.py test tests.unit_test -v 2
+```
+
+### Run all tests with coverage report:
+```bash
+coverage run --source='.' manage.py test tests.unit_test
+coverage report
+```
+
+## Test Coverage
+
+The unit test suite covers:
+- Discovery workflow for investors
+- Company profile management
+- User authentication flows
+- Access control and permissions
+- Data filtering and retrieval
+
+## Current Test Status
+
+Run the tests to see current status and identify any failing tests that need to be fixed.

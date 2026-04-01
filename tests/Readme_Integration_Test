@@ -1,0 +1,305 @@
+Hit limit for # Integration Test Suite Documentation
+
+## Overview
+
+The integration tests verify end-to-end workflows and complete user interactions across the Discovery Hub application. Unlike unit tests that test individual components in isolation, integration tests ensure that multiple components work correctly together as a unified system.
+
+## What Are Integration Tests?
+
+Integration tests:
+- Test complete user workflows from start to finish
+- Verify interactions between different components (models, views, URLs, templates)
+- Check that redirects work correctly based on user state
+- Validate permission and access control across sections
+- Test filter functionality and data flow through multiple layers
+- Ensure data persistence and retrieval work end-to-end
+
+## Test File Location
+
+```
+/Users/tylerwerr/f25_Discovery/tests/test_integration.py
+```
+
+## Running the Tests
+
+### Run all integration tests:
+```bash
+cd /Users/tylerwerr/f25_Discovery
+python manage.py test tests.test_integration
+```
+
+### Run a specific test class:
+```bash
+python manage.py test tests.test_integration.RegistrationAndAuthenticationIntegrationTest
+```
+
+### Run a specific test method:
+```bash
+python manage.py test tests.test_integration.RegistrationAndAuthenticationIntegrationTest.test_complete_company_registration_flow
+```
+
+### Run with verbose output:
+```bash
+python manage.py test tests.test_integration -v 2
+```
+
+### Run all tests with coverage report:
+```bash
+coverage run --source='.' manage.py test tests.test_integration
+coverage report
+```
+
+## Test Suite Structure
+
+The integration test suite is organized into 5 main test classes:
+
+### 1. RegistrationAndAuthenticationIntegrationTest
+**Purpose:** Tests the complete user registration and login workflows for all user types
+
+**Tests Include:**
+
+- `test_complete_company_registration_flow`: Verifies company user can register and is redirected to company dashboard
+- `test_complete_investor_registration_flow`: Verifies investor can register and is redirected to onboarding (screen1)
+- `test_complete_university_registration_flow`: Verifies university user registration flow
+- `test_login_flow_company_user`: Tests company user login with correct redirect
+- `test_login_flow_investor_user`: Tests investor user login with correct redirect
+- `test_login_with_invalid_credentials`: Verifies error handling for incorrect password
+- `test_authenticated_user_cannot_access_login`: Ensures logged-in users cannot re-access login page
+
+**What It Tests:**
+- Form submission and validation
+- User creation in database
+- Authentication state changes
+- Post-login redirects based on user type
+- Error messages and edge cases
+
+---
+
+### 2. DashboardRoutingIntegrationTest
+**Purpose:** Verifies that users are routed to correct dashboards based on their type and cannot access unauthorized dashboards
+
+**Tests Include:**
+
+- `test_company_user_redirected_to_company_dashboard`: Company users see company-specific dashboard
+- `test_investor_redirected_to_main_dashboard`: Investor users see main dashboard
+- `test_university_redirected_to_main_dashboard`: University users see main dashboard
+- `test_company_cannot_access_investor_dashboard`: Access control - company blocked from investor dashboard
+- `test_investor_cannot_access_company_dashboard`: Access control - investor blocked from company dashboard
+- `test_university_cannot_access_company_dashboard`: Access control - university blocked from company dashboard
+
+**What It Tests:**
+- View-level permission checks
+- Redirect logic based on user type
+- Access control and authorization
+- Dashboard routing correctness
+
+---
+
+### 3. CompanyDiscoveryWorkflowIntegrationTest
+**Purpose:** Tests the complete investor discovery workflow including viewing, filtering, and access control
+
+**Tests Include:**
+
+- `test_investor_can_see_discovery_list`: Investor can access company discovery list
+- `test_only_companies_seeking_funding_visible`: Only companies with seeking_funding=True appear
+- `test_discovery_list_filter_by_industry`: Filter functionality works for industry field
+- `test_discovery_list_filter_by_stage`: Filter functionality works for company stage
+- `test_discovery_list_filter_by_patent_count`: Filter functionality works for minimum patents
+- `test_non_investor_cannot_access_discovery_list`: Access control - only investors can see
+- `test_unauthenticated_user_cannot_access_discovery_list`: Unauthenticated redirected to login
+
+**What It Tests:**
+- Complex querying with multiple filters
+- Data visibility rules (seeking_funding flag)
+- Access control at the view level
+- URL parameter parsing and filtering
+- Database queries with multiple conditions
+
+---
+
+### 4. CompanyDetailViewIntegrationTest
+**Purpose:** Tests the company detail page and associated permissions
+
+**Tests Include:**
+
+- `test_investor_can_view_company_detail`: Investor can see company details
+- `test_company_cannot_view_other_company_detail`: Companies cannot view other company profiles
+- `test_unauthenticated_user_cannot_view_company_detail`: Unauthenticated users redirected to login
+
+**What It Tests:**
+- Individual record access and permissions
+- URL reverse lookup
+- Template rendering with specific data
+- Access control for sensitive data
+
+---
+
+### 5. LogoutIntegrationTest
+**Purpose:** Tests the logout workflow and session cleanup
+
+**Tests Include:**
+
+- `test_logout_workflow`: Complete logout process and session invalidation
+
+**What It Tests:**
+- Session destruction
+- Redirect after logout
+- Protected page access after logout
+
+## Key Concepts Used in Tests
+
+### setUp() Method
+Runs before each test method. Creates fresh test data (users, companies, profiles) so each test starts with known state.
+
+```python
+def setUp(self):
+    """Initialize test client and create test users"""
+    self.client = Client()
+    self.user = User.objects.create_user(...)
+```
+
+### Django Test Client
+Simulates HTTP requests without running a live server:
+- `self.client.get(url)` - Simulate GET request
+- `self.client.post(url, data)` - Simulate POST request with form data
+- `self.client.login()` - Simulate user login
+
+### Assertion Methods
+
+**Response Assertions:**
+- `self.assertEqual(response.status_code, 200)` - Check HTTP status code
+- `self.assertContains(response, 'text')` - Verify text appears in response
+- `self.assertNotContains(response, 'text')` - Verify text does NOT appear
+- `self.assertIn(url_substring, response.url)` - Check redirect URL
+
+**Model Assertions:**
+- `self.assertTrue(user.is_active)` - Verify boolean property
+- `User.objects.get(email='test@test.com')` - Verify data was saved
+
+**Form Assertions:**
+- `self.assertFormError(response, 'form', field, error_msg)` - Check validation errors
+
+## Test Data Setup
+
+Each test class defines sample data in `setUp()`:
+
+```python
+# Create test users with different types
+self.investor = User.objects.create_user(
+    email='investor@test.com',
+    username='investor',
+    password='testpass123',
+    user_type='investor'
+)
+
+# Create company profiles
+self.company_profile = CompanyProfile.objects.create(
+    user=self.company,
+    company_name='AI Solutions Inc',
+    industry='Artificial Intelligence',
+    patent_count=8,
+    seeking_funding=True
+)
+```
+
+## Common Test Patterns
+
+### 1. Testing Complete Workflows
+```python
+def test_complete_flow(self):
+    # 1. Make HTTP request
+    response = self.client.get(reverse('page:list'))
+    
+    # 2. Verify response
+    self.assertEqual(response.status_code, 200)
+    
+    # 3. Verify data in database
+    obj = Model.objects.get(id=1)
+    self.assertEqual(obj.field, expected_value)
+```
+
+### 2. Testing Access Control
+```python
+def test_access_control(self):
+    # Login as unauthorized user type
+    self.client.login(username='company', password='testpass123')
+    
+    # Try to access restricted page
+    response = self.client.get(reverse('pages:investor_dashboard'))
+    
+    # Verify redirect away
+    self.assertEqual(response.status_code, 302)
+```
+
+### 3. Testing Filter Functionality
+```python
+def test_filtering(self):
+    # Add query parameters
+    response = self.client.get(reverse('pages:discovery_list') + '?industry=AI')
+    
+    # Verify filtered results
+    self.assertContains(response, 'AI Solutions Inc')
+    self.assertNotContains(response, 'Other Industry Company')
+```
+
+## Coverage Summary
+
+The test suite covers:
+- ✅ User registration for all 3 user types (company, investor, university)
+- ✅ Login/logout workflows
+- ✅ Dashboard routing based on user type
+- ✅ Access control and permission checking
+- ✅ Company discovery and filtering (industry, stage, patents)
+- ✅ Company detail view access
+- ✅ Authentication redirects
+- ✅ Form validation and error handling
+
+## Interpreting Test Results
+
+### Success Output:
+```
+Ran 25 tests in 0.500s
+OK
+```
+
+### Failure Output:
+```
+FAIL: test_something (tests.test_integration.TestClass)
+AssertionError: 200 != 302
+```
+
+**What This Means:**
+- Expected status code 200 (success)
+- Got status code 302 (redirect)
+- Check if login is required but not provided
+
+## Best Practices
+
+1. **Keep Tests Independent**: Each test should work standalone without depending on other tests
+2. **Use Descriptive Names**: Test names should describe what they test
+3. **Test One Thing**: Each test should verify one specific behavior
+4. **Set Up Fresh Data**: `setUp()` creates new data for each test to prevent cross-test contamination
+5. **Use Meaningful Assertions**: Include context about what failed
+6. **Test Both Happy Path and Errors**: Test successful workflows AND error cases
+
+## Troubleshooting
+
+### Import Errors
+- Tests use sys.path manipulation to include the f25_discovery package
+- This is normal and expected; tests run fine with `manage.py test`
+
+### Database Not Found
+- Django tests use an in-memory database by default
+- No setup needed; it's automatic
+
+### Tests Pass Locally but Fail in CI
+- Ensure all dependencies from requirements.txt are installed
+- Check that manage.py test can find the apps
+- Verify database migrations are up-to-date
+
+## Next Steps
+
+1. Run tests: `python manage.py test tests.test_integration`
+2. Review test output and coverage
+3. Add more tests for new features
+4. Keep tests updated as functionality changes
