@@ -13,7 +13,9 @@
       <p>No role specific content yet.</p>
     {% endif %}
 
-    <a class="btn" href="{% url 'screen1' %}" style="margin-top:1rem;">← Back to Screen 1</a>
-    <a class="btn" href="{% url 'screen2' %}">Go to Screen 2</a>
+    <div class="button-row">
+      <a class="btn" href="{% url 'screen1' %}">← Back to Screen 1</a>
+      <a class="btn" href="{% url 'screen2' %}">Go to Screen 2</a>
+    </div>
   </section>
 {% endblock %}
