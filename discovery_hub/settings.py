@@ -46,7 +46,7 @@ if "test" in sys.argv and os.getenv("USE_POSTGRES_FOR_TESTS", "").lower() != "tr
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "test_db.sqlite3",
+            "NAME": ":memory:",
         }
     }
 else:
