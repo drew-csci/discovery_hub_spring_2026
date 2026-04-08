@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Opportunity Search</h1>
+<form method="get" action="{% url 'opportunity_search' %}">
+  <input type="text" name="q" value="{{ query }}" placeholder="Keyword" />
+  <input type="text" name="type" value="{{ type }}" placeholder="Type" />
+  <input type="text" name="category" value="{{ category }}" placeholder="Category" />
+  <input type="number" name="per_page" value="{{ opportunities.paginator.per_page|default:10 }}" min="1" style="width: 80px;" />
+  <button type="submit">Go</button>
+  <a href="{% url 'opportunity_search' %}" class="button">Clear</a>
+</form>
+
+<p>Found {{ total_matches }} results in {{ load_time }} seconds.</p>
+
+{% if opportunities %}
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Category</th>
+      <th>Description</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for opp in opportunities %}
+      <tr>
+        <td>{{ opp.name }}</td>
+        <td>{{ opp.type }}</td>
+        <td>{{ opp.category }}</td>
+        <td>{{ opp.description|truncatechars:80 }}</td>
+        <td>{{ opp.created_at|date:'Y-m-d H:i' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="pagination">
+  {% if opportunities.has_previous %}
+    <a href="?q={{ query }}&type={{ type }}&category={{ category }}&page={{ opportunities.previous_page_number }}&per_page={{ opportunities.paginator.per_page }}">&laquo; Prev</a>
+  {% endif %}
+  <span>Page {{ opportunities.number }} of {{ opportunities.paginator.num_pages }}</span>
+  {% if opportunities.has_next %}
+    <a href="?q={{ query }}&type={{ type }}&category={{ category }}&page={{ opportunities.next_page_number }}&per_page={{ opportunities.paginator.per_page }}">Next &raquo;</a>
+  {% endif %}
+</div>
+
+{% else %}
+<p>No results found. Try a different keyword or clear filters.</p>
+{% endif %}
+
+{% endblock %}
