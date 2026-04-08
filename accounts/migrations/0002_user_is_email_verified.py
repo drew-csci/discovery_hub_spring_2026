@@ -10,14 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="""
-                ALTER TABLE accounts_user
-                ADD COLUMN IF NOT EXISTS is_email_verified boolean NOT NULL DEFAULT FALSE;
-            """,
-            reverse_sql="""
-                ALTER TABLE accounts_user
-                DROP COLUMN IF EXISTS is_email_verified;
-            """,
+        migrations.AddField(
+            model_name='user',
+            name='is_email_verified',
+            field=models.BooleanField(default=False),
         ),
     ]
