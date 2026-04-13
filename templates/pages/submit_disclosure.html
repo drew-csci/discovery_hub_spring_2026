@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="form-card">
+  <h1>Submit an Invention Disclosure</h1>
+  <p class="lead">Complete the fields below to share a new invention disclosure.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="field-group">
+      <label for="id_inventor_name">{{ form.inventor_name.label }}</label>
+      {{ form.inventor_name }}
+      {% if form.inventor_name.errors %}
+        <div class="field-error">{{ form.inventor_name.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_inventor_email">{{ form.inventor_email.label }}</label>
+      {{ form.inventor_email }}
+      {% if form.inventor_email.errors %}
+        <div class="field-error">{{ form.inventor_email.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+      {% if form.inventor_email.help_text %}
+        <p class="field-help">{{ form.inventor_email.help_text }}</p>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_invention_title">{{ form.invention_title.label }}</label>
+      {{ form.invention_title }}
+      {% if form.invention_title.errors %}
+        <div class="field-error">{{ form.invention_title.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_invention_description">{{ form.invention_description.label }}</label>
+      {{ form.invention_description }}
+      {% if form.invention_description.errors %}
+        <div class="field-error">{{ form.invention_description.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_technology_field">{{ form.technology_field.label }}</label>
+      {{ form.technology_field }}
+      {% if form.technology_field.errors %}
+        <div class="field-error">{{ form.technology_field.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_date_of_invention">{{ form.date_of_invention.label }}</label>
+      {{ form.date_of_invention }}
+      {% if form.date_of_invention.errors %}
+        <div class="field-error">{{ form.date_of_invention.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_inventors">{{ form.inventors.label }}</label>
+      {{ form.inventors }}
+      {% if form.inventors.errors %}
+        <div class="field-error">{{ form.inventors.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+      {% if form.inventors.help_text %}
+        <p class="field-help">{{ form.inventors.help_text }}</p>
+      {% endif %}
+    </div>
+
+    <div class="field-group">
+      <label for="id_patent_status">{{ form.patent_status.label }}</label>
+      {{ form.patent_status }}
+      {% if form.patent_status.errors %}
+        <div class="field-error">{{ form.patent_status.errors.as_text|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Submit Disclosure</button>
+    </div>
+  </form>
+</section>
+
+<style>
+.form-card {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  background: #fff;
+}
+.field-group {
+  margin-bottom: 1.25rem;
+}
+.field-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.field-help {
+  margin-top: 0.25rem;
+  color: #555;
+  font-size: 0.95rem;
+}
+.field-error {
+  margin-top: 0.35rem;
+  color: #b72b2b;
+  font-size: 0.95rem;
+}
+.form-actions {
+  margin-top: 1.75rem;
+}
+.btn-primary {
+  background: #1a4a8c;
+  color: #fff;
+  border: none;
+  padding: 0.85rem 1.35rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+textarea.form-control {
+  resize: vertical;
+}
+</style>
+{% endblock %}

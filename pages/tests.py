@@ -1,6 +1,7 @@
+from django.core import mail
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Opportunity
+from .models import InventionDisclosure, Opportunity
 
 
 class OpportunitySearchUnitTests(TestCase):
@@ -239,3 +240,43 @@ class OpportunitySearchIntegrationTests(TestCase):
         self.assertEqual(response.context['query'], 'Developer')
         self.assertEqual(response.context['type'], 'Job')
         self.assertEqual(response.context['category'], 'Technology')
+
+
+class InventionDisclosureFormTests(TestCase):
+    def test_required_fields_enforced(self):
+        response = self.client.post(reverse('submit_disclosure'), {})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Inventor name is required')
+        self.assertContains(response, 'Email address is required')
+        self.assertContains(response, 'Invention title is required')
+        self.assertContains(response, 'Description is required')
+
+    def test_invalid_email_shows_inline_error(self):
+        response = self.client.post(reverse('submit_disclosure'), {
+            'inventor_name': 'Jane Doe',
+            'inventor_email': 'invalid-email',
+            'invention_title': 'Test Invention',
+            'invention_description': 'A useful invention',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Enter a valid email address')
+
+    def test_successful_submission_sends_confirmation_email(self):
+        mail.outbox = []
+        response = self.client.post(reverse('submit_disclosure'), {
+            'inventor_name': 'Jane Doe',
+            'inventor_email': 'jane@example.com',
+            'invention_title': 'Test Invention',
+            'invention_description': 'A useful invention description that is long enough.',
+            'technology_field': 'AI',
+            'date_of_invention': '2025-01-01',
+        }, follow=True)
+        self.assertEqual(InventionDisclosure.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertContains(response, 'Disclosure Submitted')
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ['jane@example.com'])
+        self.assertIn('Invention disclosure submitted: Test Invention', email.subject)
+        self.assertIn('If this was you, no action is needed.', email.body)
+        self.assertIn('If this was NOT you, please contact our support team immediately.', email.body)
+        self.assertIn('support@discovery-hub.edu', email.body)

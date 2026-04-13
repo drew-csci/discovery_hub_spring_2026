@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="success-card">
+  <h1>Disclosure Submitted</h1>
+  <p class="lead">Thank you! Your invention disclosure has been received.</p>
+
+  <div class="summary-box">
+    <p><strong>Inventor:</strong> {{ disclosure.inventor_name }}</p>
+    <p><strong>Email:</strong> {{ disclosure.inventor_email }}</p>
+    <p><strong>Title:</strong> {{ disclosure.invention_title }}</p>
+    <p><strong>Submitted:</strong> {{ disclosure.submitted_at|date:"F j, Y" }}</p>
+  </div>
+
+  <p>A confirmation email has been sent to <strong>{{ disclosure.inventor_email }}</strong>.</p>
+  <p>If you do not recognize this submission, please contact our support team immediately at <strong>{{ support_email }}</strong>.</p>
+  <a href="{% url 'submit_disclosure' %}" class="btn btn-primary">Submit Another Disclosure</a>
+</section>
+
+<style>
+.success-card {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  background: #fff;
+}
+.summary-box {
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 1rem 0;
+  background: #f8f9ff;
+}
+.btn-primary {
+  background: #1a4a8c;
+  color: #fff;
+  border: none;
+  padding: 0.85rem 1.35rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+}
+</style>
+{% endblock %}

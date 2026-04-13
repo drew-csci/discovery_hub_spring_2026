@@ -1,11 +1,15 @@
 import time
 
+from django.conf import settings
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
-from .models import Opportunity
+from .models import Opportunity, InventionDisclosure
+from .forms import InventionDisclosureForm
+from .services import send_confirmation_email
 
 def welcome(request):
     return render(request, 'pages/welcome.html')
@@ -77,3 +81,48 @@ def screen2(request):
 def screen3(request):
     role = request.user.user_type.title() if hasattr(request.user, 'user_type') else 'User'
     return render(request, 'pages/screen3.html', {'role': role})
+
+
+def submit_invention_disclosure(request):
+    if request.method == 'POST':
+        form = InventionDisclosureForm(request.POST)
+        if form.is_valid():
+            disclosure = form.save()
+
+            action_summary = (
+                f"We have received your invention disclosure titled '{disclosure.invention_title}'."
+            )
+            action_details = [
+                f"Inventor name: {disclosure.inventor_name}",
+                f"Email: {disclosure.inventor_email}",
+                f"Technology field: {disclosure.technology_field or 'Not provided'}",
+            ]
+            support_url = request.build_absolute_uri(reverse('welcome'))
+            email_sent = send_confirmation_email(
+                recipient_email=disclosure.inventor_email,
+                subject=f"Invention disclosure submitted: {disclosure.invention_title}",
+                action_summary=action_summary,
+                action_details=action_details,
+                action_url=support_url,
+            )
+            disclosure.confirmation_email_sent = email_sent
+            disclosure.save()
+
+            return redirect('disclosure_success', disclosure_id=disclosure.id)
+    else:
+        form = InventionDisclosureForm()
+
+    return render(request, 'pages/submit_disclosure.html', {'form': form})
+
+
+def disclosure_success(request, disclosure_id):
+    disclosure = InventionDisclosure.objects.filter(id=disclosure_id).first()
+    if not disclosure:
+        return redirect('submit_disclosure')
+
+    support_email = getattr(settings, 'SUPPORT_EMAIL', settings.DEFAULT_FROM_EMAIL)
+    return render(
+        request,
+        'pages/disclosure_success.html',
+        {'disclosure': disclosure, 'support_email': support_email},
+    )
