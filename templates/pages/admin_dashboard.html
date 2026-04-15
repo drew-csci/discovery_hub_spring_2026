@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="dash-card">
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, {{ request.user.display_name }} (superuser)</p>
+
+    <div class="stats">
+      <p><strong>Total users:</strong> {{ user_count }}</p>
+      <p><strong>Companies:</strong> {{ company_count }}</p>
+      <p><strong>Universities:</strong> {{ university_count }}</p>
+      <p><strong>Patents:</strong> {{ patent_count }}</p>
+      <p><strong>Settings records:</strong> {{ settings_count }}</p>
+    </div>
+
+    <div class="button-row">
+      <a class="btn" href="{{ admin_urls.users }}">Manage Users</a>
+      <a class="btn" href="{{ admin_urls.companies }}">Manage Companies</a>
+      <a class="btn" href="{{ admin_urls.universities }}">Manage Universities</a>
+      <a class="btn" href="{{ admin_urls.patents }}">Manage Patents</a>
+      <a class="btn" href="{{ admin_urls.settings }}">Manage Settings</a>
+    </div>
+
+    <h2>System settings</h2>
+    <ul>
+      {% for setting in settings %}
+        <li><strong>{{ setting.key }}</strong> = {{ setting.value }} (active: {{ setting.is_active }})</li>
+      {% empty %}
+        <li>No system settings defined.</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}
