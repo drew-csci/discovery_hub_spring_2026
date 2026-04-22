@@ -1,0 +1,591 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .discovery-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+  }
+
+  .filters-sidebar {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.8rem;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+  }
+
+  .filters-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+    color: #111;
+  }
+
+  .filter-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-group select {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+
+  .filter-group input[type="number"] {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .apply-filters {
+    width: 100%;
+    padding: 0.7rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+
+  .apply-filters:hover {
+    background: #1d4ed8;
+  }
+
+  .companies-section h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #111;
+    font-size: 1.5rem;
+  }
+
+  .companies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .company-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.8rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .company-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #2563eb;
+  }
+
+  .company-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+  }
+
+  .company-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+  }
+
+  .company-stage {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .company-stage.early {
+    background: #fee2e2;
+    color: #7f1d1d;
+  }
+
+  .company-stage.growth {
+    background: #fef3c7;
+    color: #78350f;
+  }
+
+  .company-stage.expansion {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .company-stage.mature {
+    background: #dbeafe;
+    color: #0c2340;
+  }
+
+  .company-industry {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .company-description {
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    flex-grow: 1;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .metric {
+    background: #f9fafb;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .metric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .company-footer {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .risk-btn {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .risk-btn:hover {
+    background: #1d4ed8;
+  }
+
+  .risk-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  /* Risk Modal */
+  .risk-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .risk-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .risk-modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 0.8rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    color: #111;
+  }
+
+  .close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+  }
+
+  .close-modal:hover {
+    color: #111;
+  }
+
+  .risk-display {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .risk-score-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .risk-score-circle.low {
+    background: #10b981;
+  }
+
+  .risk-score-circle.medium {
+    background: #f59e0b;
+  }
+
+  .risk-score-circle.high {
+    background: #ef4444;
+  }
+
+  .risk-level {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .risk-level.low {
+    color: #10b981;
+  }
+
+  .risk-level.medium {
+    color: #f59e0b;
+  }
+
+  .risk-level.high {
+    color: #ef4444;
+  }
+
+  .risk-recommendation {
+    font-size: 0.95rem;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+
+  .risk-analysis {
+    background: #f9fafb;
+    border-left: 4px solid #2563eb;
+    padding: 1rem;
+    border-radius: 0.4rem;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #374151;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+  }
+
+  .empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: #374151;
+  }
+
+  @media (max-width: 768px) {
+    .discovery-container {
+      grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+      position: static;
+    }
+
+    .companies-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="discovery-container">
+  <!-- Sidebar Filters -->
+  <aside class="filters-sidebar">
+    <h3>🔍 Filters</h3>
+    
+    <form id="filter-form" method="get">
+      <div class="filter-group">
+        <label for="industry">Industry</label>
+        <select id="industry" name="industry">
+          <option value="">All Industries</option>
+          {% for value, label in industries %}
+            <option value="{{ value }}" {% if value == selected_industry %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="stage">Company Stage</label>
+        <select id="stage" name="stage">
+          <option value="">All Stages</option>
+          {% for value, label in stages %}
+            <option value="{{ value }}" {% if value == selected_stage %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="patent_min">Minimum Patents</label>
+        <input 
+          type="number" 
+          id="patent_min" 
+          name="patent_min" 
+          min="0" 
+          value="{{ selected_patent_min }}"
+          placeholder="0"
+        >
+      </div>
+
+      <button type="submit" class="apply-filters">Apply Filters</button>
+    </form>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="companies-section">
+    <h2>💼 Companies Seeking Funding</h2>
+    
+    {% if error %}
+      <div style="background: #fee2e2; color: #7f1d1d; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+        ⚠️ {{ error }}
+      </div>
+    {% endif %}
+
+    <p style="color: #6b7280; margin-bottom: 1.5rem;">
+      Showing <strong>{{ total_companies }}</strong> 
+      {% if selected_industry or selected_stage or selected_patent_min %}
+        matching companies
+      {% else %}
+        available companies
+      {% endif %}
+    </p>
+
+    {% if companies %}
+      <div class="companies-grid">
+        {% for company in companies %}
+          <div class="company-card">
+            <div class="company-header">
+              <h3 class="company-name">{{ company.name }}</h3>
+              <span class="company-stage {{ company.stage }}">
+                {{ company.get_stage_display }}
+              </span>
+            </div>
+
+            <p class="company-industry">
+              🏢 {% include "pages/industry_emoji.html" with industry=company.industry %}
+              {{ company.get_industry_display }}
+            </p>
+
+            <p class="company-description">
+              {{ company.description }}
+            </p>
+
+            <div class="metrics">
+              <div class="metric">
+                <div class="metric-label">Revenue</div>
+                <div class="metric-value">
+                  {% if company.revenue_annual > 0 %}
+                    ${{ company.revenue_annual|floatformat:0 }}
+                  {% else %}
+                    Pre-revenue
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">Team</div>
+                <div class="metric-value">{{ company.employee_count }} 👥</div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">Patents</div>
+                <div class="metric-value">{{ company.patent_count }}</div>
+              </div>
+
+              <div class="metric">
+                <div class="metric-label">Founded</div>
+                <div class="metric-value">{{ company.founded_year }}</div>
+              </div>
+            </div>
+
+            <div class="company-footer">
+              <button 
+                class="risk-btn" 
+                onclick="calculateRisk({{ company.id }}, '{{ company.name }}')">
+                📊 Calculate Risk
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>🔍 No companies found</h3>
+        <p>Try adjusting your filters to see more companies.</p>
+      </div>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Risk Calculator Modal -->
+<div id="riskModal" class="risk-modal">
+  <div class="risk-modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Investment Risk Analysis</h2>
+      <button class="close-modal" onclick="closeRiskModal()">✕</button>
+    </div>
+
+    <div id="riskContent">
+      <p style="text-align: center; color: #6b7280;">Loading analysis...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function calculateRisk(companyId, companyName) {
+  const modal = document.getElementById('riskModal');
+  const riskContent = document.getElementById('riskContent');
+  const modalTitle = document.getElementById('modalTitle');
+  
+  modalTitle.textContent = `Risk Analysis: ${companyName}`;
+  riskContent.innerHTML = '<p style="text-align: center; color: #6b7280;">Calculating risk...</p>';
+  modal.classList.add('active');
+
+  fetch('{% url "calculate_risk" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify({ company_id: companyId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      riskContent.innerHTML = `<p style="color: #ef4444;">Error: ${data.error}</p>`;
+      return;
+    }
+
+    const riskLevel = data.risk_level;
+    const riskScore = data.risk_score;
+    const analysis = data.analysis;
+
+    let recommendation = '';
+    if (riskLevel === 'Low') {
+      recommendation = '✅ This appears to be a relatively safe investment opportunity with strong fundamentals.';
+    } else if (riskLevel === 'Medium') {
+      recommendation = '⚠️ This is a balanced investment with moderate risk. Do your due diligence before investing.';
+    } else {
+      recommendation = '🔴 This is a high-risk investment. Consider thoroughly before committing capital.';
+    }
+
+    riskContent.innerHTML = `
+      <div class="risk-display">
+        <div class="risk-score-circle ${riskLevel.toLowerCase()}">
+          ${riskScore}
+        </div>
+        <div class="risk-level ${riskLevel.toLowerCase()}">
+          ${riskLevel} Risk
+        </div>
+        <p class="risk-recommendation">${recommendation}</p>
+      </div>
+      <div class="risk-analysis">
+        <strong>📋 Company Analysis:</strong><br>
+        ${analysis}
+      </div>
+    `;
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    riskContent.innerHTML = '<p style="color: #ef4444;">Error calculating risk. Please try again.</p>';
+  });
+}
+
+function closeRiskModal() {
+  document.getElementById('riskModal').classList.remove('active');
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Close modal when clicking outside
+document.getElementById('riskModal').addEventListener('click', function(event) {
+  if (event.target === this) {
+    closeRiskModal();
+  }
+});
+</script>
+{% endblock %}
