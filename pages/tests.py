@@ -239,3 +239,148 @@ class OpportunitySearchIntegrationTests(TestCase):
         self.assertEqual(response.context['query'], 'Developer')
         self.assertEqual(response.context['type'], 'Job')
         self.assertEqual(response.context['category'], 'Technology')
+
+
+class ScreenViewsAuthAndRoleTests(TestCase):
+    def test_screen1_requires_login(self):
+        response = self.client.get(reverse('screen1'))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('login')))
+
+    def test_screen1_sets_role_from_user_type(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        user = User.objects.create_user(
+            email='company_user@example.com',
+            username='company_user@example.com',
+            password='SomePass123!',
+            user_type='company',
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('screen1'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pages/screen1.html')
+        self.assertEqual(response.context.get('role'), 'Company')
+
+    def test_screen2_sets_role_from_user_type(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        user = User.objects.create_user(
+            email='investor_user@example.com',
+            username='investor_user@example.com',
+            password='SomePass123!',
+            user_type='investor',
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('screen2'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pages/screen2.html')
+        self.assertEqual(response.context.get('role'), 'Investor')
+
+    def test_screen3_sets_role_from_user_type(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        user = User.objects.create_user(
+            email='university_user@example.com',
+            username='university_user@example.com',
+            password='SomePass123!',
+            user_type='university',
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('screen3'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pages/screen3.html')
+        self.assertEqual(response.context.get('role'), 'University')
+
+
+class WelcomeAndPaginationEdgeTests(TestCase):
+    def test_welcome_renders_template(self):
+        response = self.client.get(reverse('welcome'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pages/welcome.html')
+
+    def test_search_view_per_page_non_int_defaults_to_10(self):
+        # Create enough opportunities to require pagination.
+        Opportunity.objects.all().delete()
+        for i in range(11):
+            Opportunity.objects.create(name=f'Opp {i}', type='Job', category='Tech', description='x')
+
+        response = self.client.get(reverse('opportunity_search'), {'per_page': 'abc'})
+        self.assertEqual(response.status_code, 200)
+        page_obj = response.context['opportunities']
+        self.assertEqual(page_obj.paginator.per_page, 10)
+
+    def test_search_view_per_page_zero_defaults_to_10(self):
+        Opportunity.objects.all().delete()
+        for i in range(11):
+            Opportunity.objects.create(name=f'Opp {i}', type='Job', category='Tech', description='x')
+
+        response = self.client.get(reverse('opportunity_search'), {'per_page': 0})
+        self.assertEqual(response.status_code, 200)
+        page_obj = response.context['opportunities']
+        self.assertEqual(page_obj.paginator.per_page, 10)
+
+    def test_search_view_per_page_negative_defaults_to_10_negative(self):
+        Opportunity.objects.all().delete()
+        for i in range(11):
+            Opportunity.objects.create(name=f'Opp {i}', type='Job', category='Tech', description='x')
+
+        response = self.client.get(reverse('opportunity_search'), {'per_page': -5})
+        self.assertEqual(response.status_code, 200)
+        page_obj = response.context['opportunities']
+        self.assertEqual(page_obj.paginator.per_page, 10)
+
+    def test_search_view_page_non_int_defaults_to_1_negative(self):
+        Opportunity.objects.all().delete()
+        for i in range(15):
+            Opportunity.objects.create(name=f'Opp {i}', type='Job', category='Tech', description='x')
+
+        response = self.client.get(reverse('opportunity_search'), {'per_page': 10, 'page': 'abc'})
+        self.assertEqual(response.status_code, 200)
+        page_obj = response.context['opportunities']
+        self.assertEqual(page_obj.number, 1)
+
+    def test_search_view_page_out_of_range_returns_last_page_negative(self):
+        Opportunity.objects.all().delete()
+        for i in range(25):
+            Opportunity.objects.create(name=f'Opp {i}', type='Job', category='Tech', description='x')
+
+        response = self.client.get(reverse('opportunity_search'), {'per_page': 10, 'page': 999})
+        self.assertEqual(response.status_code, 200)
+        page_obj = response.context['opportunities']
+        self.assertEqual(page_obj.number, page_obj.paginator.num_pages)
+
+
+class PerformanceQueryCountTests(TestCase):
+    def test_opportunity_search_does_not_exceed_reasonable_query_count(self):
+        """Performance test (stable): caps DB queries rather than timing assertions."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        Opportunity.objects.all().delete()
+        for i in range(50):
+            Opportunity.objects.create(name=f'Python Opp {i}', type='Job', category='Tech', description='Python')
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(reverse('opportunity_search'), {'q': 'Python', 'per_page': 10, 'page': 1})
+
+        self.assertEqual(response.status_code, 200)
+        # Typical is ~3 queries (count, paginator count, page slice). Allow a little headroom.
+        self.assertLessEqual(len(ctx), 6)
+
+
+class SmokeTests(TestCase):
+    def test_smoke_public_pages_load(self):
+        """Smoke test: critical public endpoints return 200."""
+        for name in ['welcome', 'opportunity_search', 'login', 'register']:
+            response = self.client.get(reverse(name))
+            self.assertEqual(response.status_code, 200, f'{name} should return 200')

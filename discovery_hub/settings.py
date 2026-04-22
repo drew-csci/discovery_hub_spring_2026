@@ -42,24 +42,28 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = 'discovery_hub.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME','discovery_db'),
-        'USER': os.getenv('DB_USER','disco_app'),
-        'PASSWORD': os.getenv('DB_PASSWORD','CSCI340Fall2025Disco'),
-        'HOST': os.getenv('DB_HOST','34.16.174.60'),
-        'PORT': int(os.getenv('DB_PORT','5432')),
-        'CONN_MAX_AGE': 60,
-    }
-}
+# Database configuration - prefer local SQLite for development, PostgreSQL for production
+USE_LOCAL_DB = os.getenv('USE_LOCAL_DB', 'true').lower() == 'true'
 
-# Use SQLite for tests to avoid remote DB permission issues
-if 'test' in sys.argv:
+if USE_LOCAL_DB or 'runserver' in sys.argv or 'test' in sys.argv:
+    # Local development with SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
+            'NAME': os.path.join(BASE_DIR, 'db_setup.sqlite3'),
+        }
+    }
+else:
+    # Production with PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME','discovery_db'),
+            'USER': os.getenv('DB_USER','disco_app'),
+            'PASSWORD': os.getenv('DB_PASSWORD','CSCI340Fall2025Disco'),
+            'HOST': os.getenv('DB_HOST','34.16.174.60'),
+            'PORT': int(os.getenv('DB_PORT','5432')),
+            'CONN_MAX_AGE': 60,
         }
     }
 
